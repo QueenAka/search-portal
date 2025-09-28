@@ -132,3 +132,8 @@ search.addEventListener("keydown", (e) => {
     }
   }
 });
+
+search.focus();
+window.addEventListener("keydown", () => {
+  search.focus();
+});
