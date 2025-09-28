@@ -1,0 +1,126 @@
+:root {
+  --bg: #1e2124;
+  --pri: #c77dff;
+  --sec: #26292e;
+  --tri: #131517;
+  --txt: #eed1ff;
+}
+
+* {
+  transition: all 0.1s ease-in-out;
+  user-select: none;
+  font-family: monospace;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--tri);
+  color: var(--txt);
+}
+
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: fixed;
+  top: 150px;
+  left: 0;
+  width: 100%;
+  height: fit-content;
+}
+
+.logo {
+  width: 500px;
+  height: 77px;
+  background-image: url(media/large.svg);
+  background-position: center;
+  background-size: contain;
+}
+
+.search {
+  width: 650px;
+  height: 50px;
+  border-radius: 25px;
+  background-color: var(--sec);
+  margin-top: 20px;
+  display: flex;
+  position: relative;
+}
+
+.search label {
+  display: block;
+  width: 50px;
+  height: 50px;
+  mask-image: url(media/icons/search.svg);
+  mask-size: 25px;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  background: var(--txt);
+}
+
+.search input {
+  width: 590px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--txt);
+  font-size: 20px;
+  padding: 5px 10px;
+  padding-left: 0;
+  outline: none;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+}
+
+nav div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+nav div .icon {
+  mask-image: var(--img);
+  mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  background: var(--txt);
+  margin: 5px;
+  width: 40px;
+  height: 40px;
+}
+
+main .search .autocomp {
+  border-radius: 0 0 25px 25px;
+  width: 650px;
+  height: fit-content;
+  position: absolute;
+  top: 25px;
+  left: 0;
+  background: var(--sec);
+  z-index: -1;
+  padding-top: 25px;
+  font-size: 20px;
+  max-height: calc(100vh - 317px);
+  overflow-y: auto;
+}
+
+.autocomp .suggestion {
+  padding: 10px 10px;
+}
+
+.suggestion.highlighted {
+  background: var(--bg);
+}
