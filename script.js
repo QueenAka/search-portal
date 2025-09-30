@@ -1,6 +1,6 @@
 const main = document.querySelector("main .search");
 const search = document.getElementById("search");
-
+let lastInp = "";
 let currentIndex = -1;
 
 function searchAutocomplete(str) {
@@ -48,6 +48,7 @@ function searchAutocomplete(str) {
         search.focus();
         const autocomp = document.getElementById("autocomp");
         if (autocomp) autocomp.remove();
+        renderResults(q);
       };
 
       const regex = new RegExp(`(${str})`, "i");
@@ -78,8 +79,9 @@ function updateHighlight() {
 
 search.addEventListener("input", (e) => {
   const val = e.target.value.trim();
-  if (val) {
+  if (val !== lastInp) {
     searchAutocomplete(val);
+    lastInp = val;
   } else {
     const autocomp = document.getElementById("autocomp");
     if (autocomp) autocomp.remove();
@@ -88,7 +90,7 @@ search.addEventListener("input", (e) => {
 
 search.addEventListener("focus", (e) => {
   const val = e.target.value.trim();
-  if (val) {
+  if (val !== lastInp) {
     searchAutocomplete(val);
   } else {
     const autocomp = document.getElementById("autocomp");
@@ -117,8 +119,10 @@ search.addEventListener("keydown", (e) => {
     }
   } else if (e.key === "Tab") {
     e.preventDefault();
-    search.value = items[0].innerText;
-    searchAutocomplete(search.value);
+    if (items[0]) {
+      search.value = items[0].innerText;
+      searchAutocomplete(search.value);
+    }
   } else if (e.key === "Enter") {
     e.preventDefault();
     if (currentIndex >= 0 && items[currentIndex]) {
@@ -128,12 +132,110 @@ search.addEventListener("keydown", (e) => {
       currentIndex = -1;
     } else {
       if (search.value == "") return;
-      open(`https://www.google.com/search?q=${search.value}`, "_self");
+      renderResults(search.value);
     }
   }
 });
 
 search.focus();
-window.addEventListener("keydown", () => {
-  search.focus();
+window.addEventListener("keydown", (e) => {
+  if (e.key === "/") search.focus();
 });
+
+async function searchFor(query) {
+  const proxy = "https://proxy.corsfix.com/?";
+  let q = checkForEasterEggs(query);
+  q = encodeURIComponent(q);
+  const client = `https://duckduckgo.com/html/?q=`;
+  const response = await fetch(proxy + client + q);
+  const html = await response.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const results = [...doc.querySelectorAll(".result")]
+    .map((el) => {
+      const link = el.querySelector(".result__a");
+      const snippet = el.querySelector(".result__snippet");
+      const source = el.querySelector(".result__url");
+      const icon = el.querySelector(".result__icon__img");
+
+      return {
+        title: link ? link.textContent.trim() : null,
+        url: link ? link.href : null,
+        snippet: snippet
+          ? snippet.textContent.trim().replace(/\n/g, "<br />")
+          : null,
+        displayUrl: source ? source.textContent.trim() : null,
+        icon: icon ? icon.src : null,
+      };
+    })
+    .filter((result) => Object.values(result).some((value) => value !== null));
+
+  return results;
+}
+
+function checkForEasterEggs(q) {
+  document.querySelectorAll(".EE").forEach((ee) => ee.remove());
+  switch (q) {
+    case "]meatball": {
+      let img = document.createElement("img");
+      img.src = "media/easter-eggs/meatball.png";
+      img.classList.add("i_right", "EE");
+      document.body.appendChild(img);
+      return "meatball";
+    }
+
+    case "]lucky": {
+      let img = document.createElement("img");
+      img.src = "media/easter-eggs/lucky.png";
+      img.classList.add("i_left", "EE");
+      document.body.appendChild(img);
+      return "lucky";
+    }
+
+    default:
+      return q;
+  }
+}
+
+async function renderResults(query) {
+  const autocomp = document.getElementById("autocomp");
+  if (autocomp) autocomp.remove();
+  let resultsBox = document.getElementById("results");
+  resultsBox.innerHTML = "<p>Loading...</p>";
+
+  try {
+    const results = await searchFor(query);
+
+    resultsBox.innerHTML = "";
+    if (!results.length) {
+      resultsBox.innerHTML =
+        "<p><strong>MISSINGNO</strong><br/>No Results Found</p><br/><img src='media/easter-eggs/missingno.png' class='i_right' />";
+      return;
+    }
+
+    results.forEach((res) => {
+      const card = document.createElement("div");
+      card.classList.add("result");
+
+      const icon = document.createElement("img");
+      icon.src = res.icon || "media/icons/globe.svg";
+
+      const title = document.createElement("a");
+      title.href = res.url;
+      title.target = "_blank";
+      title.rel = "noopener noreferrer";
+      title.textContent = res.title || "MISSINGNO";
+      title.title = res.displayUrl || "MISSINGNO";
+
+      const snippet = document.createElement("p");
+      snippet.innerHTML = res.snippet || "";
+
+      card.appendChild(icon);
+      card.appendChild(title);
+      card.appendChild(snippet);
+      resultsBox.appendChild(card);
+    });
+  } catch (err) {
+    resultsBox.innerHTML = `<p>Error: ${err.message}</p>`;
+  }
+}
